@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f7f8;
+  --surface: #ffffff;
+  --ink: #12304a;
+  --ink-soft: #4a6076;
+  --line: #dbe3e8;
+  --primary: #1f6f73;
+  --primary-strong: #175559;
+  --primary-tint: #e3f1f1;
+  --crisis: #a73a34;
+  --crisis-tint: #fbeceb;
+  --warn: #8f5a0c;
+  --warn-tint: #fbf1de;
+  --info: #2c5f8a;
+  --info-tint: #e6eff7;
+  --ok: #2f6b4a;
+  --ok-tint: #e5f3ea;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-tint: var(--primary-tint);
+  --color-crisis: var(--crisis);
+  --color-crisis-tint: var(--crisis-tint);
+  --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --color-info: var(--info);
+  --color-info-tint: var(--info-tint);
+  --color-ok: var(--ok);
+  --color-ok-tint: var(--ok-tint);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e8eef1 25%, #f3f6f7 50%, #e8eef1 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 8px;
+}
