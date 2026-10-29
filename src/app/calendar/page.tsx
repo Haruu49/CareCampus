@@ -1,6 +1,5 @@
-import { CalendarDays } from "lucide-react";
-import { ComingSoon } from "@/components/ui/coming-soon";
+import { CalendarView } from "@/components/calendar/calendar-view";
 
-export default function Page() {
-  return <ComingSoon title="Calendar" description="Individual, group and walk-in appointments." icon={CalendarDays} />;
+export default function CalendarPage() {
+  return <CalendarView />;
 }

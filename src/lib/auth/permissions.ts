@@ -22,10 +22,14 @@ export type Permission =
   | "student.notes"
   | "student.documents"
   | "student.referrals"
-  | "student.intake";
+  | "student.intake"
+  | "calendar.view"
+  /** See WHO and WHAT sits in another staff member's calendar slot. */
+  | "calendar.allStaffDetail";
 
 const CLINICAL: Permission[] = [
   "caseload.view",
+  "calendar.view",
   "student.identity",
   "student.contact",
   "student.consent",
@@ -40,16 +44,27 @@ const CLINICAL: Permission[] = [
 
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   // Clinical Director / Admin: authorized clinical supervisor — full access.
-  admin: [...CLINICAL],
+  admin: [...CLINICAL, "calendar.allStaffDetail"],
   // Counsellor: full access; note CONTENT is additionally gated to the
-  // assigned counsellor (see canSeeNotes).
+  // assigned counsellor (see canSeeNotes), and a colleague's calendar slots
+  // show as busy without naming the student.
   counsellor: [...CLINICAL],
   // Academic Advisor: academic-risk information only. No clinical risk, no
-  // notes, sessions, documents, intake, or contact details.
+  // notes, sessions, documents, intake, or contact details. Attendance at
+  // counselling is itself sensitive, so the calendar is closed to this role.
   advisor: ["caseload.view", "student.identity", "student.consent", "student.academic", "student.referrals"],
   // Front Desk / Intake: intake and scheduling only. No academic detail, no
-  // clinical risk, no notes, sessions, documents, or referrals.
-  frontdesk: ["caseload.view", "student.identity", "student.contact", "student.consent", "student.intake"],
+  // clinical risk, no notes, sessions, documents, or referrals. Booking is
+  // their job, so they see the whole centre's schedule.
+  frontdesk: [
+    "caseload.view",
+    "student.identity",
+    "student.contact",
+    "student.consent",
+    "student.intake",
+    "calendar.view",
+    "calendar.allStaffDetail",
+  ],
 };
 
 export function can(role: Role, permission: Permission): boolean {

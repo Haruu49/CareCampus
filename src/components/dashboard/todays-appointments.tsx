@@ -2,15 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { CalendarX2, MapPin } from "lucide-react";
-import type { Appointment, AppointmentStatus, Student } from "@/lib/mock/types";
+import type { Appointment, Student } from "@/lib/mock/types";
 import { Card, EmptyState } from "@/components/ui/states";
-
-const STATUS: Record<AppointmentStatus, { label: string; cls: string }> = {
-  scheduled: { label: "Scheduled", cls: "bg-info-tint text-info" },
-  "checked-in": { label: "Checked in", cls: "bg-primary-tint text-primary-strong" },
-  completed: { label: "Completed", cls: "bg-ok-tint text-ok" },
-  "no-show": { label: "No-show", cls: "bg-crisis-tint text-crisis" },
-};
+import { AppointmentStatusBadge } from "@/components/ui/status-badge";
 
 const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
@@ -51,7 +45,6 @@ export function TodaysAppointments({ appointments, students }: { appointments: A
         <ol className="divide-y divide-line">
           {appointments.map((a) => {
             const student = students[a.studentId];
-            const st = STATUS[a.status];
             const isNext = a.id === nextId;
             return (
               <li key={a.id} className={`flex gap-3 px-4 py-3 sm:px-5 ${isNext ? "bg-primary-tint/50" : ""}`}>
@@ -68,7 +61,7 @@ export function TodaysAppointments({ appointments, students }: { appointments: A
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${st.cls}`}>{st.label}</span>
+                  <AppointmentStatusBadge status={a.status} />
                   {isNext && <span className="text-xs font-medium text-primary-strong">Up next</span>}
                 </div>
               </li>

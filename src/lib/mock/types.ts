@@ -202,3 +202,64 @@ export interface VisibleStatus {
   label: string;
   tone: "neutral" | "crisis" | "warn" | "ok" | "info";
 }
+
+// ---------------------------------------------------------------------------
+// Step 3: calendar
+// ---------------------------------------------------------------------------
+
+/** A booked appointment with a date, owned by a member of staff. */
+export interface ScheduledAppointment {
+  id: string;
+  /** Local ISO date, "YYYY-MM-DD". */
+  date: string;
+  /** 24h "HH:MM" local start time. */
+  start: string;
+  minutes: number;
+  studentId: string;
+  staffId: string;
+  type: AppointmentType;
+  status: AppointmentStatus;
+  room: string;
+}
+
+/** What a role is allowed to know about a slot's contents. */
+export interface CalendarSlotDetail {
+  studentId: string;
+  studentName: string;
+  type: AppointmentType;
+  status: AppointmentStatus;
+  room: string;
+}
+
+/**
+ * A slot as a role sees it. Time, duration and owner are never secret — a
+ * counsellor must be able to see that a colleague is busy. WHO and WHAT is
+ * gated, so another counsellor's slot arrives as a Denied marker.
+ */
+export interface CalendarSlot {
+  id: string;
+  date: string;
+  start: string;
+  minutes: number;
+  staffId: string;
+  staffName: string;
+  /** True when the slot belongs to the signed-in user. */
+  mine: boolean;
+  detail: Gated<CalendarSlotDetail>;
+}
+
+export interface CalendarStaff {
+  id: string;
+  name: string;
+  initials: string;
+  mine: boolean;
+}
+
+export interface ScheduleView {
+  /** Monday of the week shown, local ISO date. */
+  weekStart: string;
+  /** The five weekdays shown, local ISO dates. */
+  days: string[];
+  staff: CalendarStaff[];
+  slots: CalendarSlot[];
+}

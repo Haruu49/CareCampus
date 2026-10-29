@@ -1,6 +1,8 @@
-import { STUDENT_RECORDS, STUDENT_RECORD_MAP, staffName } from "@/lib/mock/students";
+import { COUNSELLORS, STUDENT_RECORDS, STUDENT_RECORD_MAP, staffName } from "@/lib/mock/students";
+import { appointmentsForWeek, weekDays } from "@/lib/mock/schedule";
 import type {
   AcademicSummary,
+  CalendarSlot,
   ClinicalNote,
   ConsentState,
   Denied,
@@ -8,6 +10,7 @@ import type {
   IntakeInfo,
   Referral,
   Role,
+  ScheduleView,
   SessionEntry,
   StudentDocument,
   StudentRecord,
@@ -165,4 +168,83 @@ export async function fetchStudentProfile(
   const record = STUDENT_RECORD_MAP[id];
   if (!record) return null;
   return buildProfile(role, currentUserId, record);
+}
+
+// ---------------------------------------------------------------------------
+// Calendar
+//
+// Time, duration and owner are never redacted: a counsellor has to be able to
+// see that a colleague is booked at 14:00 in order to find cover or a room.
+// WHO is in the slot and WHAT kind of appointment it is are gated, because an
+// appointment type like "Walk-in / Crisis" discloses clinical information.
+// ---------------------------------------------------------------------------
+
+/** Whether this role may see the contents of a slot, given whose slot it is. */
+export function canSeeSlotDetail(role: Role, slotStaffId: string, currentUserId: string): boolean {
+  if (!can(role, "calendar.view")) return false;
+  if (can(role, "calendar.allStaffDetail")) return true;
+  return slotStaffId === currentUserId;
+}
+
+/**
+ * The week's schedule as a role sees it. Returns a Denied marker rather than
+ * throwing when the role has no calendar access at all, so the page can
+ * explain itself instead of showing an error.
+ *
+ * `today` is supplied by the caller (resolved from the viewer's clock) so the
+ * data layer stays deterministic and free of hidden clock reads.
+ */
+export async function fetchSchedule(
+  role: Role,
+  currentUserId: string,
+  weekStart: string,
+  today: string,
+  demo?: string,
+): Promise<Gated<ScheduleView>> {
+  await wait(500);
+  if (!can(role, "calendar.view")) {
+    return {
+      denied: true,
+      reason: `${denyReason(role, "The counselling calendar")} Attendance at counselling is confidential, so appointment times are not shared outside the counselling team.`,
+    };
+  }
+  if (demo === "error") throw new Error("Mock schedule service unavailable");
+
+  const days = weekDays(weekStart);
+  const staff = COUNSELLORS.map((s) => ({
+    id: s.id,
+    name: s.name,
+    initials: s.initials,
+    mine: s.id === currentUserId,
+  }));
+
+  if (demo === "empty") return { weekStart, days, staff, slots: [] };
+
+  const slots: CalendarSlot[] = appointmentsForWeek(weekStart, today).map((a) => {
+    const visible = canSeeSlotDetail(role, a.staffId, currentUserId);
+    const student = STUDENT_RECORD_MAP[a.studentId];
+    return {
+      id: a.id,
+      date: a.date,
+      start: a.start,
+      minutes: a.minutes,
+      staffId: a.staffId,
+      staffName: staffName(a.staffId),
+      mine: a.staffId === currentUserId,
+      detail: visible
+        ? {
+            studentId: a.studentId,
+            studentName: student?.name ?? "Unknown student",
+            type: a.type,
+            status: a.status,
+            room: a.room,
+          }
+        : {
+            denied: true,
+            reason: `This slot is on ${staffName(a.staffId)}'s calendar. Only the assigned counsellor, a clinical supervisor or the front desk can see who it is with.`,
+          },
+    };
+  });
+
+  return { weekStart, days, staff, slots };
 }
